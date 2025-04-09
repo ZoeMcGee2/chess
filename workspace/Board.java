@@ -89,18 +89,28 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	//since we only have one kind of piece for now you need only set the same number of pieces on either side.
 	//it's up to you how you wish to arrange your pieces.
     private void initializePieces() {
-    	
+
     	for(int row = 0; row < 2; row++){
             for(int col = 0; col < 8; col++){
-                Piece star = new Piece(false, "brook.png");
-                board[row][col].put(star);
+                if(row == 0 && col == 4){
+                    King king = new King(false, "bking.png");
+                    board[0][4].put(king);
+                } else {
+                    Star star = new Star(false, "brook.png");
+                    board[row][col].put(star);
+                }
             }
         }
 
         for(int row = 6; row < 8; row++){
             for(int col = 0; col < 8; col++){
-                Piece star = new Piece(true, "wrook.png");
-                board[row][col].put(star);
+                if(row == 7 && col == 3){
+                    King king = new King(true, "wking.png");
+                    board[7][3].put(king);
+                } else {
+                    Star star = new Star(true, "wrook.png");
+                    board[row][col].put(star);
+                }
             }
         }
 
@@ -170,26 +180,34 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     //moving the new piece to it's new board location. 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if(currPiece != null){
         Square endSquare = (Square) this.getComponentAt(new Point(e.getX(), e.getY()));
-        
         //using currPiece
         for(Square [] row: board) {
         	for(Square s: row) {
-        		s.setBorder(null);
-        	}
-        	
+            	s.setBorder(null);
+            }
         }
+        boolean check = false;
         for(Square s: currPiece.getLegalMoves(this, fromMoveSquare)){
             if(s == endSquare){
                 endSquare.put(currPiece);
+                if(isInCheck(whiteTurn)){
+                    fromMoveSquare.put(currPiece);
+                    continue;
+                }
                 fromMoveSquare.removePiece();
                 fromMoveSquare = endSquare;
-            }
+                check = true;
+                whiteTurn = !whiteTurn;
+            } else if(s!=endSquare && !check){
+                fromMoveSquare.put(currPiece);
+           }
         }
-
         fromMoveSquare.setDisplay(true);
         currPiece = null;
         repaint();
+        }
     }
 
     @Override
@@ -220,5 +238,23 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     @Override
     public void mouseExited(MouseEvent e) {
     }
-
+    
+    public boolean isInCheck(boolean kingColor){
+        ArrayList<Square> controlled = new ArrayList<Square>();
+        for(int row = 0; row < 8; row++){
+            for(int col = 0; col < 8; col++){
+                if(board[row][col].getOccupyingPiece()!=null && board[row][col].getOccupyingPiece().getColor() != kingColor){
+                    controlled.add(board[row][col]);
+                }
+            }
+        }
+        for(Square s : controlled){
+            for(Square r : s.getOccupyingPiece().getControlledSquares(board, s)){
+                if(r.getOccupyingPiece()!=null && r.getOccupyingPiece() instanceof King){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
