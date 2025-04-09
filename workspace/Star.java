@@ -30,19 +30,19 @@ public class Star extends Piece {
     @Override
     public ArrayList<Square> getControlledSquares(Square[][] board, Square start) {
       ArrayList<Square> controlled = new ArrayList<Square>();
-      if(start.getCol()+2 < 8 && (!board[start.getRow()][start.getCol()+2].getOccupyingPiece().getColor())){
-        controlled.add(board[start.getRow()][start.getCol()+2]);
+      int x = start.getRow();
+      int y = start.getCol();
+      for(int i = -2; i <= 2; i+=2){
+        for(int j = -2; j <=2; j+=2){
+          if(i==0 && j==0){
+            continue;
+          }
+          if (x + i >= 0 && x + i < board.length && y + j >= 0 && y + j < board[x].length) {
+            // Add the square to the list of controlled squares
+            controlled.add(board[x + i][y + j]);
+          }
+        }
       }
-      if(start.getCol()-2 >= 0 && (!board[start.getRow()][start.getCol()-2].getOccupyingPiece().getColor())){
-        controlled.add(board[start.getRow()][start.getCol()-2]);
-      }
-      if(start.getRow()+2 < 8 && (!board[start.getRow()+2][start.getCol()].getOccupyingPiece().getColor())){
-        controlled.add(board[start.getRow()+2][start.getCol()]);
-      }
-      if(start.getRow()-2 >= 0 && (!board[start.getRow()-2][start.getCol()].getOccupyingPiece().getColor())){
-        controlled.add(board[start.getRow()-2][start.getCol()]);
-      }
-
       return controlled;
     }
     

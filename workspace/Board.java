@@ -189,18 +189,21 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
             }
         }
         boolean check = false;
+        Piece previous;
         for(Square s: currPiece.getLegalMoves(this, fromMoveSquare)){
-            if(s == endSquare){
+            if(s == endSquare && whiteTurn == currPiece.getColor()){
+                previous = s.getOccupyingPiece();
                 endSquare.put(currPiece);
+                fromMoveSquare.removePiece();
                 if(isInCheck(whiteTurn)){
                     fromMoveSquare.put(currPiece);
-                    continue;
+                    endSquare.put(previous);
+                } else {
+                    fromMoveSquare = endSquare;
+                    check = true;
+                    whiteTurn = !whiteTurn;
                 }
-                fromMoveSquare.removePiece();
-                fromMoveSquare = endSquare;
-                check = true;
-                whiteTurn = !whiteTurn;
-            } else if(s!=endSquare && !check){
+            } else if(s!=endSquare && !check && isInCheck(whiteTurn)){
                 fromMoveSquare.put(currPiece);
            }
         }
@@ -241,20 +244,22 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     
     public boolean isInCheck(boolean kingColor){
         ArrayList<Square> controlled = new ArrayList<Square>();
-        for(int row = 0; row < 8; row++){
-            for(int col = 0; col < 8; col++){
-                if(board[row][col].getOccupyingPiece()!=null && board[row][col].getOccupyingPiece().getColor() != kingColor){
-                    controlled.add(board[row][col]);
+        Square check = null;
+        for(Square [] row : board){
+            for(Square col : row){
+                if(col.getOccupyingPiece()!=null && (col.getOccupyingPiece().getColor() != kingColor)){
+                    for(Square s : col.getOccupyingPiece().getControlledSquares(board,col)){
+                        controlled.add(s);
+                    }
+                } else {
+                    if(col.getOccupyingPiece() instanceof King && col.getOccupyingPiece().getColor() == kingColor){
+                        check = col;
+                    }
                 }
             }
         }
-        for(Square s : controlled){
-            for(Square r : s.getOccupyingPiece().getControlledSquares(board, s)){
-                if(r.getOccupyingPiece()!=null && r.getOccupyingPiece() instanceof King){
-                    return true;
-                }
-            }
-        }
-        return false;
+        
+        return controlled.contains(check);
+        
     }
 }
